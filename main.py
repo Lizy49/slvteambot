@@ -6,23 +6,18 @@ from aiogram.enums import ParseMode
 import asyncio
 import os
 
-# Настройка логирования
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-# Токен бота
 BOT_TOKEN = "8451963488:AAFNwy9zq0savVxNX6-9sm5dSto7pcTTxKY"
 
-# Инициализация бота и диспетчера
 bot = Bot(token=BOT_TOKEN)
 dp = Dispatcher()
 
-# Пути к изображениям
 IMAGE_PATHS = {
     "main": "images/2.jpg"
 }
 
-# Создание инлайн клавиатуры для главного меню
 def get_main_menu_keyboard():
     keyboard = [
         [
@@ -35,14 +30,12 @@ def get_main_menu_keyboard():
     ]
     return types.InlineKeyboardMarkup(inline_keyboard=keyboard)
 
-# Функция для отправки/изменения сообщения с картинкой
 async def send_or_edit_photo(callback: types.CallbackQuery, image_key: str, caption: str, reply_markup=None):
     try:
         if os.path.exists(IMAGE_PATHS[image_key]):
             with open(IMAGE_PATHS[image_key], 'rb') as file:
                 photo_data = file.read()
             
-            # Если сообщение уже есть с картинкой - редактируем
             if callback.message.photo:
                 await callback.message.edit_media(
                     media=types.InputMediaPhoto(
@@ -52,14 +45,12 @@ async def send_or_edit_photo(callback: types.CallbackQuery, image_key: str, capt
                     reply_markup=reply_markup
                 )
             else:
-                # Если нет картинки - отправляем новую
                 await callback.message.answer_photo(
                     photo=BufferedInputFile(photo_data, filename=f"{image_key}.jpg"),
                     caption=caption,
                     reply_markup=reply_markup
                 )
         else:
-            # Если картинки нет - редактируем только текст
             await callback.message.edit_caption(
                 caption=caption,
                 reply_markup=reply_markup
@@ -72,7 +63,6 @@ async def send_or_edit_photo(callback: types.CallbackQuery, image_key: str, capt
             reply_markup=reply_markup
         )
 
-# Обработчик команды /start
 @dp.message(Command("start"))
 async def cmd_start(message: Message):
     try:
@@ -95,7 +85,6 @@ async def cmd_start(message: Message):
         logger.error(f"Ошибка: {e}")
         await message.answer("Ошибка загрузки")
 
-# Обработчик кнопки "Инфо"
 @dp.callback_query(lambda c: c.data == "info")
 async def show_info(callback: types.CallbackQuery):
     caption = (
@@ -111,7 +100,6 @@ async def show_info(callback: types.CallbackQuery):
     await send_or_edit_photo(callback, "info", caption, keyboard)
     await callback.answer()
 
-# Обработчик кнопки "Сотрудничество"
 @dp.callback_query(lambda c: c.data == "cooperation")
 async def show_cooperation(callback: types.CallbackQuery):
     caption = (
@@ -126,7 +114,6 @@ async def show_cooperation(callback: types.CallbackQuery):
     await send_or_edit_photo(callback, "cooperation", caption, keyboard)
     await callback.answer()
 
-# Обработчик кнопки "Канал с темками"
 @dp.callback_query(lambda c: c.data == "themes")
 async def show_themes(callback: types.CallbackQuery):
     caption = (
@@ -141,7 +128,6 @@ async def show_themes(callback: types.CallbackQuery):
     await send_or_edit_photo(callback, "themes", caption, keyboard)
     await callback.answer()
 
-# Обработчик кнопки "Назад"
 @dp.callback_query(lambda c: c.data == "back_main")
 async def back_main(callback: types.CallbackQuery):
     try:
@@ -171,6 +157,5 @@ async def main():
     await dp.start_polling(bot)
 
 if __name__ == "__main__":
-    # Создаем папку если нет
     os.makedirs("images", exist_ok=True)
     asyncio.run(main())
